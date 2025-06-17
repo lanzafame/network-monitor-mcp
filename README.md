@@ -70,18 +70,52 @@ sudo ./network-monitor-mcp
 
 ### Configuring Claude Desktop
 
-Add the server to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+**⚠️ IMPORTANT SECURITY WARNING:**
 
-```json
-{
-  "mcpServers": {
-    "network-monitor": {
-      "command": "sudo",
-      "args": ["/path/to/network-monitor-mcp"]
-    }
-  }
-}
-```
+Claude Desktop cannot directly execute commands with sudo. To use this MCP server with Claude Desktop, you have two options:
+
+**Option 1: Sudoers Configuration (NOT RECOMMENDED for production)**
+
+You can configure sudo to allow the network-monitor-mcp binary to run without a password prompt. This has **SIGNIFICANT SECURITY IMPLICATIONS** and should only be done in isolated development environments where security is not a concern.
+
+1. Edit the sudoers file:
+   ```bash
+   sudo visudo
+   ```
+
+2. Add the following line (replace username and path):
+   ```
+   username ALL=(ALL) NOPASSWD: /path/to/network-monitor-mcp
+   ```
+
+3. Update Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+   ```json
+   {
+     "mcpServers": {
+       "network-monitor": {
+         "command": "/path/to/network-monitor-mcp"
+       }
+     }
+   }
+   ```
+
+**⚠️ SECURITY RISKS:**
+- This grants passwordless root access to the binary
+- If the binary is compromised, an attacker gains root access
+- Network packet capture can expose sensitive data
+- Only use this in isolated development/testing environments
+- Never use this configuration on production systems or machines with sensitive data
+
+**Option 2: Run Claude Desktop with elevated privileges (ALSO NOT RECOMMENDED)**
+
+You could run Claude Desktop itself with sudo, but this gives the entire application root access, which poses even greater security risks.
+
+### Recommended Approach
+
+For production use, consider:
+- Running the MCP server as a system service with proper permissions
+- Using a dedicated monitoring system with appropriate access controls
+- Implementing proper authentication and authorization mechanisms
 
 ### Example Claude Commands
 
